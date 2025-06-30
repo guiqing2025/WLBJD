@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>物料报价单</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- SheetJS for Excel export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- html2canvas for PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- jsPDF for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+    <div class="container" id="pdf-content">
+        <div class="header">
+            <div class="header-content">
+                <div class="logo-section">
+                    <img src="logo.svg" alt="贵擎" class="logo" id="logo">
+                </div>
+                <div class="title-section">
+                    <div class="title">物料报价单</div>
+                    <div class="title-en">Material Quotation</div>
+                </div>
+            </div>
+            <input type="file" id="logo-upload" accept="image/*" style="display: none;">
+        </div>
+        <form id="quotation-form">
+            <section class="section">
+                <div class="row">
+                    <div class="form-group">
+                        <label>公司名称</label>
+                        <textarea id="company-name" class="autoresize" rows="1">示例科技有限公司</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>公司地址</label>
+                        <textarea id="company-address" class="autoresize" rows="1">北京市朝阳区科技园区123号</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>公司电话</label>
+                        <input type="text" id="company-phone" value="400-123-4567">
+                    </div>
+                    <div class="form-group">
+                        <label>公司邮箱</label>
+                        <input type="email" id="company-email" value="info@example.com">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group">
+                        <label>报价单号</label>
+                        <input type="text" id="quotation-no" value="QT20250630312">
+                    </div>
+                    <div class="form-group">
+                        <label>报价日期</label>
+                        <input type="date" id="quotation-date" value="2025-06-30">
+                    </div>
+                    <div class="form-group">
+                        <label>有效期至</label>
+                        <input type="date" id="valid-until" value="2025-07-29">
+                    </div>
+                    <div class="form-group">
+                        <label>币种</label>
+                        <select id="currency">
+                            <option value="CNY">人民币（CNY）</option>
+                            <option value="USD">美元（USD）</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+            <section class="section">
+                <div class="row">
+                    <div class="form-group">
+                        <label>客户公司名称</label>
+                        <textarea id="customer-name" class="autoresize" rows="1" placeholder="请输入客户公司名称"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>联系人</label>
+                        <input type="text" id="customer-contact" placeholder="请输入联系人">
+                    </div>
+                    <div class="form-group">
+                        <label>联系电话</label>
+                        <input type="text" id="customer-phone" placeholder="请输入客户电话">
+                    </div>
+                    <div class="form-group">
+                        <label>客户邮箱</label>
+                        <input type="email" id="customer-email" placeholder="请输入客户邮箱">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group">
+                        <label>客户地址</label>
+                        <textarea id="customer-address" class="autoresize" rows="1" placeholder="请输入客户地址"></textarea>
+                    </div>
+                </div>
+            </section>
+            <section class="section">
+                <div class="row">
+                    <div class="form-group">
+                        <label>税率</label>
+                        <select id="tax-rate">
+                            <option value="0.13">13%</option>
+                            <option value="0.09">9%</option>
+                            <option value="0.06">6%</option>
+                            <option value="0.03">3%</option>
+                            <option value="0">0%</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>付款方式</label>
+                        <select id="payment-method">
+                            <option value="对公转账">对公转账</option>
+                            <option value="银行承兑">银行承兑</option>
+                            <option value="商业承兑">商业承兑</option>
+                            <option value="现金支付">现金支付</option>
+                            <option value="其他">其他</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>交货期</label>
+                        <input type="text" id="delivery-time" value="7天内">
+                    </div>
+                    <div class="form-group">
+                        <label>交货地点</label>
+                        <textarea id="delivery-place" class="autoresize" rows="1">客户指定地点</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>运输方式</label>
+                        <textarea id="transport-method" class="autoresize" rows="1">快递/物流</textarea>
+                    </div>
+                </div>
+            </section>
+            <section class="section">
+                <h3>物料清单</h3>
+                <button type="button" id="add-item">添加物料</button>
+                <table id="items-table">
+                    <thead>
+                        <tr>
+                            <th>序号</th>
+                            <th>物料名称</th>
+                            <th>规格型号</th>
+                            <th>单位</th>
+                            <th>数量</th>
+                            <th>单价</th>
+                            <th>金额</th>
+                            <th>备注</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- 动态插入物料行 -->
+                    </tbody>
+                </table>
+                <div class="total-row">
+                    <span>小计：<span id="subtotal-amount">￥0.00</span></span>
+                    <span style="margin-left:30px;">税额：<span id="tax-amount">￥0.00</span></span>
+                    <span style="margin-left:30px;">总计：<span id="total-amount">￥0.00</span></span>
+                    <span style="margin-left:30px;">大写：<span id="total-amount-cn">零元整</span></span>
+                </div>
+            </section>
+            <section class="section">
+                <h3>收款账户信息</h3>
+                <div class="info-grid">
+                    <label>账户名称</label>
+                    <span id="bank-account-name">深圳市宝安区贵擎电子产品服务中心 (个体工商户)</span>
+                    <label>账户号码</label>
+                    <span id="bank-account-number">86031110001500874</span>
+                    <label>开户银行</label>
+                    <span id="bank-name">宁波银行股份有限公司深圳光明支行</span>
+                    <label>法定代表人 (单位负责人)</label>
+                    <span id="legal-representative">郑丽霞</span>
+                </div>
+            </section>
+            <section class="section">
+                <div class="row">
+                    <div class="form-group" style="flex:2;">
+                        <label>备注</label>
+                        <textarea id="quotation-remark" rows="2" class="autoresize" placeholder="如：本报价单有效期为7天，售后服务详见合同条款等"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>公司盖章</label>
+                        <div class="stamp-box"></div>
+                    </div>
+                </div>
+            </section>
+            <div class="export-buttons">
+                <button type="button" id="clear-data">清空数据</button>
+                <button type="button" id="export-excel">导出Excel</button>
+                <button type="button" id="export-pdf">导出PDF</button>
+                <button type="button" id="print-page">直接打印</button>
+            </div>
+        </form>
+    </div>
+    <script>
+        window.jsPDF = window.jspdf.jsPDF;
+    </script>
+    <script src="script.js"></script>
+</body>
+</html> 
